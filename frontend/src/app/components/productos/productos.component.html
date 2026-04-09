@@ -1,0 +1,50 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Productos</h2>
+  <button class="btn btn-primary" (click)="mostrarForm = !mostrarForm">
+    {{ mostrarForm ? 'Cancelar' : 'Nuevo Producto' }}
+  </button>
+</div>
+
+<div *ngIf="mostrarForm" class="card mb-4">
+  <div class="card-header">Nuevo Producto</div>
+  <div class="card-body">
+    <form (ngSubmit)="crearProducto()">
+      <div class="row">
+        <div class="col-md-6">
+          <label>Nombre del Producto</label>
+          <input type="text" class="form-control" [(ngModel)]="nuevoProducto.nombre_producto" name="nombre" required>
+        </div>
+        <div class="col-md-3">
+          <label>Precio Sugerido</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoProducto.precio_sugerido" name="precio" step="0.01" required>
+        </div>
+        <div class="col-md-3">
+          <label>Tipo Producción ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoProducto.id_tipo_produccion" name="tipoProduccion">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Precio Sugerido</th>
+        <th>Tipo Producción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let producto of productos">
+        <td>{{ producto.id_producto }}</td>
+        <td>{{ producto.nombre_producto }}</td>
+        <td>$ {{ producto.precio_sugerido }}</td>
+        <td>{{ producto.tipo_produccion_nombre || producto.id_tipo_produccion }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

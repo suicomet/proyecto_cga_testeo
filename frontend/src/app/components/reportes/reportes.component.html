@@ -1,0 +1,64 @@
+<h2>Reportes</h2>
+
+<div class="row mt-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Stock de Insumo</h5>
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-3">
+          <input type="number" class="form-control" [(ngModel)]="insumoId" placeholder="ID Insumo">
+          <button class="btn btn-primary" (click)="consultarStock()">Consultar</button>
+        </div>
+        
+        <div *ngIf="stockInfo" class="mt-3">
+          <table class="table table-bordered">
+            <tr>
+              <th>Stock Teórico</th>
+              <td>{{ stockInfo.stock_teorico }}</td>
+            </tr>
+            <tr>
+              <th>Último Conteo Físico</th>
+              <td>{{ stockInfo.ultimo_conteo || 'No disponible' }}</td>
+            </tr>
+            <tr>
+              <th>Fecha Último Conteo</th>
+              <td>{{ stockInfo.fecha_ultimo_conteo || 'No disponible' }}</td>
+            </tr>
+            <tr>
+              <th>Diferencia</th>
+              <td [ngClass]="{'text-danger': stockInfo.diferencia < 0, 'text-success': stockInfo.diferencia >= 0}">
+                {{ stockInfo.diferencia }}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Reportes Disponibles</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <a routerLink="/clientes">Saldos de Clientes</a>
+          </li>
+          <li class="list-group-item">
+            <a routerLink="/pedidos">Pedidos por Período</a>
+          </li>
+          <li class="list-group-item">
+            <a routerLink="/produccion">Producción por Turno</a>
+          </li>
+          <li class="list-group-item">
+            <a routerLink="/bodega">Movimientos de Bodega</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

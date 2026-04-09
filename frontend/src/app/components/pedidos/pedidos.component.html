@@ -1,0 +1,62 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Pedidos</h2>
+  <button class="btn btn-primary" (click)="mostrarForm = !mostrarForm">
+    {{ mostrarForm ? 'Cancelar' : 'Nuevo Pedido' }}
+  </button>
+</div>
+
+<div *ngIf="mostrarForm" class="card mb-4">
+  <div class="card-header">Nuevo Pedido</div>
+  <div class="card-body">
+    <form (ngSubmit)="crearPedido()">
+      <div class="row">
+        <div class="col-md-4">
+          <label>Cliente ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoPedido.id_cliente" name="cliente" required>
+        </div>
+        <div class="col-md-4">
+          <label>Distribución ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoPedido.id_distribucion" name="distribucion" required>
+        </div>
+        <div class="col-md-4">
+          <label>Fecha Pedido</label>
+          <input type="date" class="form-control" [(ngModel)]="nuevoPedido.fecha_pedido" name="fechaPedido" required>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-md-4">
+          <label>Fecha Entrega Solicitada</label>
+          <input type="date" class="form-control" [(ngModel)]="nuevoPedido.fecha_entrega_solicitada" name="fechaEntrega" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Distribución</th>
+        <th>Fecha Pedido</th>
+        <th>Fecha Entrega</th>
+        <th>Detalles</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let pedido of pedidos">
+        <td>{{ pedido.id_pedido }}</td>
+        <td>{{ pedido.cliente_nombre || pedido.id_cliente }}</td>
+        <td>{{ pedido.distribucion_nombre || pedido.id_distribucion }}</td>
+        <td>{{ pedido.fecha_pedido }}</td>
+        <td>{{ pedido.fecha_entrega_solicitada }}</td>
+        <td>
+          <span class="badge bg-secondary">{{ pedido.detalles?.length || 0 }} items</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,54 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Producción</h2>
+  <button class="btn btn-primary" (click)="mostrarForm = !mostrarForm">
+    {{ mostrarForm ? 'Cancelar' : 'Nueva Producción' }}
+  </button>
+</div>
+
+<div *ngIf="mostrarForm" class="card mb-4">
+  <div class="card-header">Registrar Producción</div>
+  <div class="card-body">
+    <form (ngSubmit)="crearProduccion()">
+      <div class="row">
+        <div class="col-md-3">
+          <label>Jornada ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaProduccion.id_jornada" name="jornada" required>
+        </div>
+        <div class="col-md-3">
+          <label>Tipo Producción ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaProduccion.id_tipo_produccion" name="tipo" required>
+        </div>
+        <div class="col-md-3">
+          <label>Turno ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaProduccion.id_turno" name="turno" required>
+        </div>
+        <div class="col-md-3">
+          <label>Quintales</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaProduccion.quintales" name="quintales" step="0.01" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Jornada</th>
+        <th>Tipo Producción</th>
+        <th>Turno</th>
+        <th>Quintales</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let prod of producciones">
+        <td>{{ prod.jornada_fecha || prod.id_jornada }}</td>
+        <td>{{ prod.tipo_produccion_nombre || prod.id_tipo_produccion }}</td>
+        <td>{{ prod.turno_nombre || prod.id_turno }}</td>
+        <td>{{ prod.quintales }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

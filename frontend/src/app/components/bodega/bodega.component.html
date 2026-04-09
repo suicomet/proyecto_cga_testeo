@@ -1,0 +1,80 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Bodega - Movimientos</h2>
+  <button class="btn btn-primary" (click)="mostrarForm = !mostrarForm">
+    {{ mostrarForm ? 'Cancelar' : 'Nuevo Movimiento' }}
+  </button>
+</div>
+
+<div *ngIf="mostrarForm" class="card mb-4">
+  <div class="card-header">Registrar Movimiento de Bodega</div>
+  <div class="card-body">
+    <form (ngSubmit)="crearMovimiento()">
+      <div class="row">
+        <div class="col-md-3">
+          <label>Insumo ID</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoMovimiento.id_insumo" name="insumo" required>
+        </div>
+        <div class="col-md-3">
+          <label>Fecha Movimiento</label>
+          <input type="date" class="form-control" [(ngModel)]="nuevoMovimiento.fecha_movimiento" name="fecha" required>
+        </div>
+        <div class="col-md-3">
+          <label>Tipo Movimiento</label>
+          <select class="form-control" [(ngModel)]="nuevoMovimiento.tipo_movimiento" name="tipo" required>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SALIDA">Salida</option>
+            <option value="AJUSTE">Ajuste</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label>Cantidad</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoMovimiento.cantidad" name="cantidad" step="0.01" required>
+        </div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-md-3">
+          <label>Jornada ID (opcional)</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoMovimiento.id_jornada" name="jornada">
+        </div>
+        <div class="col-md-3">
+          <label>Turno ID (opcional)</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevoMovimiento.id_turno" name="turno">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Insumo</th>
+        <th>Fecha</th>
+        <th>Tipo</th>
+        <th>Cantidad</th>
+        <th>Jornada</th>
+        <th>Turno</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let mov of movimientos">
+        <td>{{ mov.insumo_nombre || mov.id_insumo }}</td>
+        <td>{{ mov.fecha_movimiento }}</td>
+        <td>
+          <span [ngClass]="{
+            'badge bg-success': mov.tipo_movimiento === 'ENTRADA',
+            'badge bg-danger': mov.tipo_movimiento === 'SALIDA',
+            'badge bg-warning': mov.tipo_movimiento === 'AJUSTE'
+          }">
+            {{ mov.tipo_movimiento }}
+          </span>
+        </td>
+        <td>{{ mov.cantidad }}</td>
+        <td>{{ mov.id_jornada || '-' }}</td>
+        <td>{{ mov.id_turno || '-' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
