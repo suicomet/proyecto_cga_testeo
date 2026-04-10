@@ -23,7 +23,7 @@ Sistema web completo para control de producción, pedidos, movimientos reales, p
 - **Proxy configurado** para comunicación con backend
 - **Build exitoso** en modo desarrollo
 
-### 📊 **Datos de Prueba Incluidos**
+###  **Datos de Prueba Incluidos**
 - 6 insumos de bodega (harina, azúcar, levadura, etc.)
 - 5 tipos de producción (pan corriente, integral, dulce, etc.)
 - 7 productos comerciales con precios
