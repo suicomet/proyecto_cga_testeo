@@ -52,9 +52,11 @@ DEBUG=False
 DJANGO_SECRET_KEY=<genera-un-secreto-seguro>
 ALLOWED_HOSTS=*.railway.app
 CORS_ALLOWED_ORIGINS=https://tu-frontend.vercel.app
+CSRF_TRUSTED_ORIGINS=https://*.railway.app
 ```
 
-**Nota**: `CORS_ALLOWED_ORIGINS` se configurará después de desplegar el frontend.
+**Nota**: Railway proporciona automáticamente `DATABASE_URL`, no es necesario configurarla manualmente.
+**Nota 2**: `CORS_ALLOWED_ORIGINS` se configurará después de desplegar el frontend.
 
 ### Paso 5: Ejecutar migraciones
 1. En Railway, ve a la pestaña **"Deployments"**

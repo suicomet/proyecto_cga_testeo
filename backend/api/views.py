@@ -159,3 +159,12 @@ class ReportesViewSet(viewsets.ViewSet):
             'fecha_ultimo_conteo': ultimo_conteo.fecha_conteo if ultimo_conteo else None,
             'diferencia': stock_teorico - (ultimo_conteo.cantidad_fisica if ultimo_conteo else 0)
         })
+
+
+# Health check endpoint
+from rest_framework.decorators import api_view
+
+@api_view(['GET'])
+def health_check(request):
+    from rest_framework.response import Response
+    return Response({'status': 'healthy'})

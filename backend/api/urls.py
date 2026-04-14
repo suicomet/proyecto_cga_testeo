@@ -19,5 +19,6 @@ router.register(r'movimientos', views.DetalleMovimientoViewSet)
 router.register(r'reportes', views.ReportesViewSet, basename='reportes')
 
 urlpatterns = [
+    path('health/', views.health_check, name='health-check'),
     path('', include(router.urls)),
 ]
