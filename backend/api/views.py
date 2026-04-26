@@ -192,31 +192,43 @@ class CierreTurnoViewSet(viewsets.ModelViewSet):
         return self._decimal_2(total or Decimal("0.00"))
 
     def _calcular_snapshot(self, cierre):
-        kilos_directos = self._sumar_movimientos_pan_corriente(cierre, "KILO")
-        unidades_totales = self._sumar_movimientos_pan_corriente(cierre, "UNIDAD")
-        kilos_equivalentes = self._decimal_2(unidades_totales / Decimal("13"))
-        quintales_cocidos = self._sumar_quintales_cocidos(cierre)
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    kilos_reparto_directos,
+                    unidades_reparto,
+                    kilos_equivalentes,
+                    kilos_totales,
+                    quintales_cocidos,
+                    rinde
+                FROM fn_calcular_rinde_turno(%s, %s)
+                """,
+                [
+                    cierre.id_jornada_id,
+                    cierre.id_turno_id,
+                ],
+            )
 
-        kilos_totales = self._decimal_2(
-            kilos_directos
-            + kilos_equivalentes
-            + cierre.pan_especial_kg
-            + cierre.mostrador_kg
-            + cierre.raciones_kg
-            + cierre.ajuste_por_error_kg
-        )
+            resultado = cursor.fetchone()
 
-        rinde = Decimal("0.0000")
-        if quintales_cocidos > 0:
-            rinde = self._decimal_4(kilos_totales / quintales_cocidos)
+        if resultado is None:
+            return {
+                "quintales_cocidos": Decimal("0.00"),
+                "kilos_directos": Decimal("0.00"),
+                "unidades_totales": Decimal("0.00"),
+                "kilos_equivalentes": Decimal("0.00"),
+                "kilos_totales": Decimal("0.00"),
+                "rinde": Decimal("0.0000"),
+            }
 
         return {
-            "quintales_cocidos": quintales_cocidos,
-            "kilos_directos": kilos_directos,
-            "unidades_totales": unidades_totales,
-            "kilos_equivalentes": kilos_equivalentes,
-            "kilos_totales": kilos_totales,
-            "rinde": rinde,
+            "quintales_cocidos": resultado[4],
+            "kilos_directos": resultado[0],
+            "unidades_totales": resultado[1],
+            "kilos_equivalentes": resultado[2],
+            "kilos_totales": resultado[3],
+            "rinde": resultado[5],
         }
 
     def update(self, request, *args, **kwargs):
