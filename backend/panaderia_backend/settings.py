@@ -290,23 +290,22 @@ LOGGING = {
     },
 }
 
+# CSRF trusted origins (needed for Django Admin even in DEBUG mode)
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if origin]
+if 'RAILWAY_PUBLIC_DOMAIN' in os.environ:
+    railway_domain = f"https://{os.environ['RAILWAY_PUBLIC_DOMAIN']}"
+    if railway_domain not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_domain)
+
 # Security settings for production
 if not DEBUG:
-    # Trust the X-Forwarded-Proto header from Railway's proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-    # Remove empty strings from the list
-    CSRF_TRUSTED_ORIGINS = [origin for origin in CSRF_TRUSTED_ORIGINS if origin]
-    # Always allow Railway's public domain for CSRF
-    if 'RAILWAY_PUBLIC_DOMAIN' in os.environ:
-        railway_domain = f"https://{os.environ['RAILWAY_PUBLIC_DOMAIN']}"
-        if railway_domain not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(railway_domain)
 
 LOGIN_REDIRECT_URL = '/api/catalogo/productos/'
 LOGOUT_REDIRECT_URL = '/api-auth/login/'
