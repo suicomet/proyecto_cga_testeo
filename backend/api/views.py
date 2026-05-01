@@ -437,14 +437,6 @@ class PedidoViewSet(viewsets.ModelViewSet):
                 DetalleMovimiento.objects
                 .select_for_update()
                 .filter(id_pedido=pedido)
-                .select_related(
-                    "id_jornada",
-                    "id_turno",
-                    "id_cliente",
-                    "id_distribucion",
-                    "id_producto",
-                    "id_pedido",
-                )
                 .order_by("id_detalle")
             )
 
