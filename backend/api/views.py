@@ -1,10 +1,10 @@
-﻿import random
+import random
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -104,6 +104,13 @@ class TipoProduccionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, EstaAutenticadoLecturaORolEscritura]
     roles_escritura = ROLES_ADMIN
 
+    def get_permissions(self):
+        if getattr(self, "action", None) == "create":
+            self.roles_escritura = ROLES_OPERACION
+        else:
+            self.roles_escritura = ROLES_ADMIN
+
+        return super().get_permissions()
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
@@ -223,23 +230,31 @@ class CierreTurnoViewSet(viewsets.ModelViewSet):
 
             resultado = cursor.fetchone()
 
+        quintales_cierre = self._decimal_2(cierre.quintales_cocidos or Decimal("0.00"))
+
         if resultado is None:
-            return {
-                "quintales_cocidos": Decimal("0.00"),
-                "kilos_directos": Decimal("0.00"),
-                "unidades_totales": Decimal("0.00"),
-                "kilos_equivalentes": Decimal("0.00"),
-                "kilos_totales": Decimal("0.00"),
-                "rinde": Decimal("0.0000"),
-            }
+            kilos_directos = Decimal("0.00")
+            unidades_totales = Decimal("0.00")
+            kilos_equivalentes = Decimal("0.00")
+            kilos_totales = Decimal("0.00")
+        else:
+            kilos_directos = self._decimal_2(resultado[0] or Decimal("0.00"))
+            unidades_totales = self._decimal_2(resultado[1] or Decimal("0.00"))
+            kilos_equivalentes = self._decimal_2(resultado[2] or Decimal("0.00"))
+            kilos_totales = self._decimal_2(resultado[3] or Decimal("0.00"))
+
+        if quintales_cierre > 0:
+            rinde = self._decimal_4(kilos_totales / quintales_cierre)
+        else:
+            rinde = Decimal("0.0000")
 
         return {
-            "quintales_cocidos": resultado[4],
-            "kilos_directos": resultado[0],
-            "unidades_totales": resultado[1],
-            "kilos_equivalentes": resultado[2],
-            "kilos_totales": resultado[3],
-            "rinde": resultado[5],
+            "quintales_cocidos": quintales_cierre,
+            "kilos_directos": kilos_directos,
+            "unidades_totales": unidades_totales,
+            "kilos_equivalentes": kilos_equivalentes,
+            "kilos_totales": kilos_totales,
+            "rinde": rinde,
         }
 
     def update(self, request, *args, **kwargs):
@@ -414,6 +429,96 @@ class PedidoViewSet(viewsets.ModelViewSet):
     serializer_class = PedidoSerializer
     permission_classes = [IsAuthenticated, EstaAutenticadoLecturaORolEscritura]
     roles_escritura = ROLES_OPERACION
+
+    def _obtener_o_crear_jornada_pedido(self, pedido):
+        fecha_jornada = pedido.fecha_entrega_solicitada or pedido.fecha_pedido
+        jornada, creada = JornadaDiaria.objects.get_or_create(fecha=fecha_jornada)
+        return jornada, creada
+
+    @action(detail=True, methods=["post"], url_path="generar-movimientos")
+    def generar_movimientos(self, request, pk=None):
+        pedido = self.get_object()
+
+        with transaction.atomic():
+            movimientos_existentes = (
+                DetalleMovimiento.objects
+                .select_for_update()
+                .filter(id_pedido=pedido)
+                .order_by("id_detalle")
+            )
+
+            if movimientos_existentes.exists():
+                serializer = DetalleMovimientoSerializer(
+                    movimientos_existentes,
+                    many=True
+                )
+
+                return Response(
+                    {
+                        "detail": "El pedido ya tiene movimientos de venta asociados. No se generaron duplicados.",
+                        "pedido_id": pedido.id_pedido,
+                        "movimientos_creados": 0,
+                        "jornada_creada": False,
+                        "movimientos": serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            detalles = list(
+                pedido.detalles
+                .select_related("id_producto")
+                .all()
+            )
+
+            if not detalles:
+                return Response(
+                    {
+                        "detail": "El pedido no tiene detalles registrados. No se pueden generar movimientos."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            jornada, jornada_creada = self._obtener_o_crear_jornada_pedido(pedido)
+            movimientos_creados = []
+
+            for detalle in detalles:
+                movimiento = DetalleMovimiento.objects.create(
+                    id_jornada_id=jornada.id_jornada,
+                    id_turno=None,
+                    id_cliente_id=pedido.id_cliente_id,
+                    id_distribucion_id=pedido.id_distribucion_id,
+                    id_producto_id=detalle.id_producto_id,
+                    id_pedido_id=pedido.id_pedido,
+                    precio_cobrado=detalle.precio_cobrado,
+                    descuento_porcentaje_aplicado=(
+                        detalle.descuento_porcentaje_aplicado
+                        if detalle.descuento_porcentaje_aplicado is not None
+                        else Decimal("0.00")
+                    ),
+                    cantidad_entregada=detalle.cantidad_solicitada,
+                    unidad_medida=detalle.unidad_medida,
+                    cancelacion=Decimal("0.00"),
+                )
+
+                movimientos_creados.append(movimiento)
+
+            serializer = DetalleMovimientoSerializer(
+                movimientos_creados,
+                many=True
+            )
+
+            return Response(
+                {
+                    "detail": "Movimientos de venta generados correctamente desde el pedido.",
+                    "pedido_id": pedido.id_pedido,
+                    "movimientos_creados": len(movimientos_creados),
+                    "jornada_id": jornada.id_jornada,
+                    "jornada_fecha": jornada.fecha,
+                    "jornada_creada": jornada_creada,
+                    "movimientos": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
 
 class DetallePedidoViewSet(viewsets.ModelViewSet):

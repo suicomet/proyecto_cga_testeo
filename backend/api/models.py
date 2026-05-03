@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 
 from django.db import models
 from django.utils import timezone
@@ -508,8 +508,7 @@ class DetalleMovimiento(models.Model):
         max_digits=5,
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
-        null=True,
-        blank=True,
+        default=0,
     )
     cantidad_entregada = models.DecimalField(
         max_digits=10,
@@ -524,8 +523,7 @@ class DetalleMovimiento(models.Model):
     cancelacion = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        null=True,
-        blank=True,
+        default=0,
     )
 
     def __str__(self):
@@ -588,7 +586,7 @@ class SaldoAcumuladoCliente(models.Model):
 
 
 class TwoFactorCode(models.Model):
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
     session_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -596,14 +594,14 @@ class TwoFactorCode(models.Model):
     is_used = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'two_factor_code'
+        db_table = "two_factor_code"
 
     def is_valid(self):
         return not self.is_used and timezone.now() <= self.expires_at
 
     def mark_as_used(self):
         self.is_used = True
-        self.save(update_fields=['is_used'])
+        self.save(update_fields=["is_used"])
 
 
 class DetalleRepartoTurno(models.Model):

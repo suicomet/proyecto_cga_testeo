@@ -1,6 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
 from . import views
+from .usuarios_views import UsuarioSistemaViewSet
+
 
 # Router global (backward compatibility)
 router = DefaultRouter()
@@ -20,6 +23,8 @@ router.register(r'detalles-pedido', views.DetallePedidoViewSet)
 router.register(r'movimientos', views.DetalleMovimientoViewSet)
 router.register(r'repartos-turno', views.DetalleRepartoTurnoViewSet)
 router.register(r'reportes', views.ReportesViewSet, basename='reportes')
+router.register(r'usuarios', UsuarioSistemaViewSet, basename='usuarios')
+
 
 # Módulo Catálogo
 router_catalogo = DefaultRouter()
@@ -29,6 +34,7 @@ router_catalogo.register(r'insumos', views.InsumoViewSet)
 router_catalogo.register(r'tipos-produccion', views.TipoProduccionViewSet)
 router_catalogo.register(r'productos', views.ProductoViewSet)
 
+
 # Módulo Producción
 router_produccion = DefaultRouter()
 router_produccion.register(r'jornadas', views.JornadaDiariaViewSet)
@@ -36,10 +42,12 @@ router_produccion.register(r'producciones', views.ProduccionViewSet)
 router_produccion.register(r'cierres-turno', views.CierreTurnoViewSet)
 router_produccion.register(r'repartos-turno', views.DetalleRepartoTurnoViewSet)
 
+
 # Módulo Bodega
 router_bodega = DefaultRouter()
 router_bodega.register(r'movimientos-bodega', views.MovimientoBodegaViewSet)
 router_bodega.register(r'conteos-bodega', views.ConteoBodegaViewSet)
+
 
 # Módulo Ventas
 router_ventas = DefaultRouter()
@@ -48,15 +56,18 @@ router_ventas.register(r'pedidos', views.PedidoViewSet)
 router_ventas.register(r'detalles-pedido', views.DetallePedidoViewSet)
 router_ventas.register(r'movimientos', views.DetalleMovimientoViewSet)
 
-# Módulo Reportes (ya tiene su propio router)
+
+# Módulo Reportes
 router_reportes = DefaultRouter()
 router_reportes.register(r'reportes', views.ReportesViewSet, basename='reportes')
+
 
 urlpatterns = [
     path('health/', views.health_check, name='health-check'),
     path('me/', views.usuario_actual, name='usuario-actual'),
     path('token/2fa/', views.two_factor_obtain, name='token-2fa-obtain'),
     path('token/2fa/verify/', views.two_factor_verify, name='token-2fa-verify'),
+
     path('', include(router.urls)),  # Rutas globales (backward compatibility)
     path('catalogo/', include(router_catalogo.urls)),
     path('produccion/', include(router_produccion.urls)),
