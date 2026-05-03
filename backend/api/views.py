@@ -104,6 +104,13 @@ class TipoProduccionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, EstaAutenticadoLecturaORolEscritura]
     roles_escritura = ROLES_ADMIN
 
+    def get_permissions(self):
+        if getattr(self, "action", None) == "create":
+            self.roles_escritura = ROLES_OPERACION
+        else:
+            self.roles_escritura = ROLES_ADMIN
+
+        return super().get_permissions()
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
