@@ -116,8 +116,62 @@ La API REST está disponible en `http://localhost:8000/api/`
 - **Turnos**: Noche, Mañana, Tarde
 - **Distribución**: Repartidor 1, Repartidor 2, Retiro en panadería, Sala de ventas
 
-## Próximos Pasos
-1. Configurar CORS para frontend Angular (ya configurado para localhost:4200)
-2. Implementar pruebas unitarias
-3. Configurar entorno de producción
-4. Implementar backup automático de base de datos
+---
+
+## Testing
+
+### Resultados actuales — 34/34 tests pasando ✅
+
+```
+Módulo              Tests    Estado
+─────────────────────────────────────────────
+test_auth.py          11    ✅ 11/11  Auth + 2FA + JWT
+test_bodega.py         7    ✅  7/7   Movimientos bodega, conteos
+test_produccion.py     6    ✅  6/6   Jornadas, producción, cierre turno
+test_ventas.py         5    ✅  5/5   Pedidos, movimientos comerciales
+test_reportes.py       4    ✅  4/4   Stock insumo, resumen jornada
+─────────────────────────────────────────────
+Total                 34    ✅ 34/34  Duración: ~20s
+```
+
+### Cobertura de funcionalidades
+
+| Funcionalidad | Tests |
+|---|---|
+| Login 2FA (obtener código) | Verifica que credenciales válidas retornan `session_id` |
+| Login 2FA (verificar código) | Verifica que código correcto retorna JWT |
+| Login 2FA (código expirado) | Verifica error 401 con código vencido |
+| Login 2FA (código incorrecto) | Verifica error 401 con código erróneo |
+| Login 2FA (credenciales inválidas) | Verifica error 401 con credenciales incorrectas |
+| Login 2FA (invalidación al re-solicitar) | Verifica que código anterior queda inválido al pedir uno nuevo |
+| Login 2FA (usuario inactivo) | Verifica error 401 si usuario está desactivado |
+| API /me/ autenticado | Verifica que retorna datos del usuario con token válido |
+| API /me/ no autenticado | Verifica error 401 sin token |
+| Health check | Verifica que endpoint público responde 200 |
+| Bodega (CRUD movimientos) | Crear entrada, salida, listar, tipos inválidos |
+| Bodega (conteos) | Crear y listar conteos físicos |
+| Producción (jornadas) | Crear, listar, evitar duplicados |
+| Producción (registro) | Crear y listar producción por jornada/turno |
+| Cierre de turno | Crear cierre, error al cerrar ya cerrado |
+| Ventas (pedidos) | Crear y listar pedidos |
+| Ventas (movimientos) | Crear, listar movimientos y consultar saldo |
+| Reportes (stock insumo) | Consultar stock con y sin parámetro |
+| Reportes (resumen jornada) | Consultar resumen con y sin parámetro |
+
+### Cómo ejecutar
+
+```bash
+# Activar entorno virtual
+venv\Scripts\activate
+
+# Ejecutar todos los tests (PostgreSQL requerido)
+python manage.py test api.tests --keepdb --verbosity=2
+
+# Ejecutar un módulo específico
+python manage.py test api.tests.test_auth --keepdb
+
+# Ejecutar un solo test
+python manage.py test api.tests.test_auth.TestAuth.test_login_2fa_verificar_codigo_correcto --keepdb
+```
+
+**Requisito:** PostgreSQL debe estar corriendo localmente. Los tests crean su propia base de datos temporal (`test_panaderia_db`) y no modifican la base de datos real de desarrollo ni producción.
